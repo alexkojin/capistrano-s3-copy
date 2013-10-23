@@ -9,7 +9,7 @@ module Capistrano
 
         def initialize(config={})
           super(config)
-
+          puts "OKKKKKKKKKKKKKKKKKK "
           s3cmd_vars = []
           ["aws_access_key_id", "aws_secret_access_key"].each do |var|
             value = configuration[var.to_sym]
@@ -33,8 +33,8 @@ module Capistrano
         def distribute!
           package_path = filename
           package_name = File.basename(package_path)
-          s3_push_cmd = "#{aws_environment} s3cmd put #{bucket_name}:#{rails_env}/#{package_name} #{package_path} x-amz-server-side-encryption:AES256 2>&1"
-
+          s3_push_cmd = "#{aws_environment} s3cmd put s3://#{bucket_name}:#{rails_env}/#{package_name} #{package_path} x-amz-server-side-encryption:AES256 2>&1"
+          puts s3_push_cmd
           if configuration.dry_run
             logger.debug s3_push_cmd
           else
@@ -42,7 +42,7 @@ module Capistrano
             raise Capistrano::Error, "shell command failed with return code #{$?}" if $? != 0
           end
 
-          run "#{aws_environment} s3cmd get #{bucket_name}:#{rails_env}/#{package_name} #{remote_filename} 2>&1"
+          run "#{aws_environment} s3cmd get s3://#{bucket_name}:#{rails_env}/#{package_name} #{remote_filename} 2>&1"
           run "cd #{configuration[:releases_path]} && #{decompress(remote_filename).join(" ")} && rm #{remote_filename}"
           logger.debug "done!"
 
@@ -59,7 +59,7 @@ module Capistrano
           File.open(local_output_file, "w") do  |f|
             f.write(output)
           end
-          configuration[:s3_copy_aws_install_cmd] = "#{aws_environment} s3cmd put #{bucket_name}:#{rails_env}/aws_install.sh #{local_output_file} x-amz-server-side-encryption:AES256 2>&1"
+          configuration[:s3_copy_aws_install_cmd] = "#{aws_environment} s3cmd put s3://#{bucket_name}:#{rails_env}/aws_install.sh #{local_output_file} x-amz-server-side-encryption:AES256 2>&1"
         end
 
         def binding
